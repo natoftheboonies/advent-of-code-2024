@@ -22,10 +22,10 @@ mkdir -p src/day$day0
 cp src/day00/* src/day$day0
 mv src/day$day0/day00.py src/day$day0/day$day0.py
 # replace DAY = 1 with DAY = $day
-sed -i "s/DAY = 1/DAY = $day/g" src/day$day0/day$day0.py
+sed -i '' -E "s/DAY = 1/DAY = $day/g" src/day$day0/day$day0.py
 # replace "https://adventofcode.com/2024/day/1" with $day
-sed -i "s|https://adventofcode.com/2024/day/1|https://adventofcode.com/2024/day/$day|g" src/day$day0/day$day0.py
+sed -i '' -E "s|https://adventofcode.com/2024/day/1|https://adventofcode.com/2024/day/$day|g" src/day$day0/day$day0.py
 # populate Date like "Date: 2023-12-01"
-sed -i "s/Date: 2023-12-01/Date: $date/g" src/day$day0/day$day0.py
+sed -i '' -E "s/Date: 2023-12-01/Date: $date/g" src/day$day0/day$day0.py
 
 echo "Day $day0 ready"
