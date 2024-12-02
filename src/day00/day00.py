@@ -3,11 +3,6 @@ Author: Nat with Darren's Template
 Date: 2023-12-01
 
 Solving https://adventofcode.com/2024/day/1
-
-Part 1:
-
-Part 2:
-
 """
 
 import logging
