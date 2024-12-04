@@ -22,12 +22,10 @@ except ValueError as e:
     logger.error(e)
 
 
-dirs = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
-
-
 def search(data, x, y):
     matches = 0
-    for dx, dy in dirs:
+    for vector in ac.Vectors:
+        dx, dy = vector.value
         for i, c in enumerate("XMAS"):
             nx, ny = x + dx * i, y + dy * i
             if nx < 0 or ny < 0 or nx >= len(data[0]) or ny >= len(data):
@@ -39,41 +37,17 @@ def search(data, x, y):
     return matches
 
 
-opposite_dirs = [((1, 1), (-1, -1)), ((1, -1), (-1, 1))]
-
-""""
-S S
- A
-M M
-
-M S
- A
-M S
-
-"""
-
-
 def search2(data, x, y):
-    pair = set("MS")
-    for dir_pair in opposite_dirs:
+    if x == 0 or y == 0 or x == len(data[0]) - 1 or y == len(data) - 1:
+        return 0
+    for vector in (ac.Vectors.NE, ac.Vectors.SE):
+        dx, dy = vector.value
         check_pair = set()
-        for dir in dir_pair:
-
-            dx, dy = dir
-            if (
-                x + dx < 0
-                or y + dy < 0
-                or x + dx >= len(data[0])
-                or y + dy >= len(data)
-            ):
-                break
-            check_pair.add(data[y + dy][x + dx])
-
-        if check_pair != pair:
-            break
-    else:
-        return 1
-    return 0
+        check_pair.add(data[y + dy][x + dx])
+        check_pair.add(data[y - dy][x - dx])
+        if check_pair != set("MS"):
+            return 0
+    return 1
 
 
 def main():
@@ -88,7 +62,6 @@ def main():
     for y, line in enumerate(data):
         for x, c in enumerate(line):
             if c == "X":
-                # search!
                 result += search(data, x, y)
             if c == "A":
                 result2 += search2(data, x, y)
