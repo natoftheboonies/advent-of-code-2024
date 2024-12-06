@@ -21,7 +21,7 @@ try:
 except ValueError as e:
     logger.error(e)
 
-dirs = [ac.Vectors.S.value, ac.Vectors.E.value, ac.Vectors.N.value, ac.Vectors.W.value]
+dirs = [v.y_inverted for v in (ac.Vectors.N, ac.Vectors.E, ac.Vectors.S, ac.Vectors.W)]
 
 
 def explore(bounds, obstacles, guard, guard_idx):
