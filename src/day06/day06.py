@@ -43,15 +43,15 @@ def explore(bounds, obstacles, guard, guard_idx):
         if new_pos in obstacles:
             turn = (guard, guard_idx, new_pos)
             if turn in turns:
-                logger.debug(f"Looping: {turn}")
-                return -1
+                # logger.debug(f"Looping: {turn}")
+                return None
             turns.add(turn)
             guard_idx = (guard_idx + 1) % 4
             continue
         else:
             guard = new_pos
             visited.add(guard)
-    return len(visited)
+    return visited
 
 
 def main():
@@ -73,18 +73,18 @@ def main():
 
     part1 = explore(bounds, obstacles, guard, guard_idx)
 
-    logger.debug(f"Part 1: {part1}")
+    logger.debug(f"Part 1: {len(part1)}")
     # assert part1 == 4776
+
     part2 = 0
-    for y in range(bounds[1]):
-        for x in range(bounds[0]):
-            if (x, y) in obstacles or (x, y) == guard:
-                continue
-            new_obstacles = obstacles.copy()
-            new_obstacles.add((x, y))
-            detect_loop = explore(bounds, new_obstacles, guard, guard_idx)
-            if detect_loop == -1:
-                part2 += 1
+    for x, y in part1:
+        if (x, y) == guard:
+            continue
+        new_obstacles = obstacles.copy()
+        new_obstacles.add((x, y))
+        detect_loop = explore(bounds, new_obstacles, guard, guard_idx)
+        if detect_loop is None:
+            part2 += 1
 
     logger.debug(f"Part 2: {part2}")
     # logger.debug(data)
