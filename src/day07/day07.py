@@ -33,19 +33,23 @@ def check_eq(expected, head, tail):
     )
 
 
-def check_eq2(expected, head, tail, oper):
+def concatenate_integers(a, b):
+    factor = 10
+    while b >= factor:
+        factor *= 10
+    return a * factor + b
+
+
+def check_eq2(expected, head, tail):
     if not tail:
         if head == expected:
-            logger.debug(f"Found: {head} with {oper}")
             return True
     if head > expected or not tail:
         return False
     return (
-        check_eq2(expected, head + tail[0], tail[1:], oper + "+")
-        or check_eq2(expected, head * tail[0], tail[1:], oper + "*")
-        or check_eq2(
-            expected, int(str(head) + str(tail[0])), tail[1:], oper + "c"
-        )  # Concatenate),
+        check_eq2(expected, head + tail[0], tail[1:])
+        or check_eq2(expected, head * tail[0], tail[1:])
+        or check_eq2(expected, concatenate_integers(head, tail[0]), tail[1:])
     )
 
 
@@ -62,11 +66,9 @@ def main():
         left, right = line.split(": ")
         left = int(left)
         seq = tuple(map(int, right.split()))
-        logger.debug(f"{left}, {seq}")
         if check_eq(left, seq[0], seq[1:]):
             sum_valid += left
-        if check_eq2(left, seq[0], seq[1:], ""):
-            logger.debug(f"Part 2 ok: {left}")
+        if check_eq2(left, seq[0], seq[1:]):
             sum2_valid += left
 
     logger.info(f"Part 1: {sum_valid}")
