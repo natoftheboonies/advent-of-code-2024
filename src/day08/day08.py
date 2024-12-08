@@ -30,7 +30,6 @@ def main():
 
     # logger.debug(data)
     bounds = (len(data[0]), len(data))
-    logger.debug(bounds)
 
     signals = dict()
     for y, line in enumerate(data):
@@ -38,13 +37,15 @@ def main():
             if c != ".":
                 signals[c] = signals.get(c, []) + [(x, y)]
 
-    # logger.debug(signals)
     antinodes = set()
+    harmonics = set()
     for coords in signals.values():
         for s1 in coords:
             for s2 in coords:
                 if s1 == s2:
                     continue
+                harmonics.add(s1)
+                harmonics.add(s2)
                 s1x, s1y = s1
                 s2x, s2y = s2
                 # calc point on s1 -> s2 line past s2 by distance from s1
@@ -52,35 +53,20 @@ def main():
                 dy = s2y - s1y
                 a1x = s2x + dx
                 a1y = s2y + dy
-                a2x = s1x - dx
-                a2y = s1y - dy
                 if a1x >= 0 and a1x < bounds[0] and a1y >= 0 and a1y < bounds[1]:
                     antinodes.add((a1x, a1y))
+                a2x = s1x - dx
+                a2y = s1y - dy
                 if a2x >= 0 and a2x < bounds[0] and a2y >= 0 and a2y < bounds[1]:
                     antinodes.add((a2x, a2y))
-    part1 = len(antinodes)
-    logger.info("Part 1: %s", part1)
-
-    antinodes = set()
-    for coords in signals.values():
-        for s1 in coords:
-            antinodes.add(s1)
-            for s2 in coords:
-                if s1 == s2:
-                    continue
-                s1x, s1y = s1
-                s2x, s2y = s2
-                # calc point on s1 -> s2 line past s2 by distance from s1
-                dx = s2x - s1x
-                dy = s2y - s1y
-
+                # resonant antinodes
                 factor = 1
                 while True:
                     a1x = s2x + dx * factor
                     a1y = s2y + dy * factor
                     if a1x < 0 or a1x >= bounds[0] or a1y < 0 or a1y >= bounds[1]:
                         break
-                    antinodes.add((a1x, a1y))
+                    harmonics.add((a1x, a1y))
                     factor += 1
                 factor = 1
                 while True:
@@ -88,16 +74,12 @@ def main():
                     a2y = s1y - dy * factor
                     if a2x < 0 or a2x >= bounds[0] or a2y < 0 or a2y >= bounds[1]:
                         break
-                    antinodes.add((a2x, a2y))
+                    harmonics.add((a2x, a2y))
                     factor += 1
-
-    part2 = len(antinodes)
-    # for y in range(bounds[1]):
-    #     line = ""
-    #     for x in range(bounds[0]):
-    #         line += "#" if (x, y) in antinodes else "."
-    #     logger.debug(line)
-    logger.info("Part 2: %s", part2)  # not 678
+    part1 = len(antinodes)
+    logger.info("Part 1: %s", part1)
+    part2 = len(harmonics)
+    logger.info("Part 2: %s", part2)
 
 
 if __name__ == "__main__":
