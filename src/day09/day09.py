@@ -63,7 +63,7 @@ def part1(disk):
 
 def main():
     puzzle = locations.input_file
-    # puzzle = locations.sample_input_file
+    puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         data = f.read().strip()
 
@@ -77,7 +77,43 @@ def main():
         idx += 2
     # logger.debug(disk)
 
-    logger.info(f"Checksum: {part1(disk)}")  # low 85635411453
+    # logger.info(f"Checksum: {part1(disk)}")  # low 85635411453
+    idx = len(disk) - 1
+    while idx >= 0:
+        # can we move this?
+        key, file, free = disk[idx]
+        # logger.debug(f"disk (start): {disk}")
+        # logger.debug(f"can we move key: {key}")
+        for i in range(idx - 1):
+            key2, file2, free2 = disk[i]
+            if free2 >= file:
+                # yes, it fits here
+                disk.pop(idx)
+                # extend the free space before
+                key_before, file_before, free_before = disk[idx - 1]
+                disk[idx - 1] = (key_before, file_before, free_before + free + file)
+                # consume the space used
+                disk[i] = (key2, file2, 0)
+                # insert the moved file
+                disk = disk[: i + 1] + [(key, file, free2 - file)] + disk[i + 1 :]
+                # logger.debug("moved %d to %d", key, i + 1)
+                break
+        else:
+            # logger.debug("no fit found for %d", key)
+            idx -= 1
+
+    # logger.debug(f"disk (end): {disk}")
+    checksum = 0
+    disk_seq = []
+    for idx, c, free in disk:
+        disk_seq.extend([idx] * c)
+        disk_seq.extend(["."] * free)
+    # logger.info(f"disk_seq: {disk_seq}")
+
+    for idx, c in enumerate(disk_seq):
+        if c != ".":
+            checksum += idx * c
+    logger.info(f"Checksum: {checksum}")  # high 6381625147860
 
 
 if __name__ == "__main__":
