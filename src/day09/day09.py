@@ -41,6 +41,7 @@ def calc_checksum(disk):
     checksum = 0
     block_id = 0
     for file_id, blocks, free in disk:
+        # https://github.com/janek37/advent-of-code/blob/main/2024/day09.py#L60
         checksum += file_id * (block_id * blocks + blocks * (blocks - 1) // 2)
         block_id += blocks + free
     return checksum
