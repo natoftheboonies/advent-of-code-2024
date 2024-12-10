@@ -22,98 +22,126 @@ except ValueError as e:
     logger.error(e)
 
 
+def build_disk(data):
+    idx = 0
+    disk = []
+    while idx < len(data):
+        file_id = idx // 2
+        blocks = int(data[idx])
+        free = int(data[idx + 1]) if idx + 1 < len(data) else 0
+        disk.append((file_id, blocks, free))
+        if blocks == 0:
+            logger.warning("zero file size at %d", idx)
+            assert False
+        idx += 2
+    return disk
+
+
+def calc_checksum(disk):
+    checksum = 0
+    block_id = 0
+    for file_id, blocks, free in disk:
+        checksum += file_id * (block_id * blocks + blocks * (blocks - 1) // 2)
+        block_id += blocks + free
+    return checksum
+
+
 def part1(disk):
     idx = 0
-
     while idx < len(disk):
-        key, file, free = disk[idx]
-        # logger.debug("prefix: %s %d", str(idx), file)
+        # fill the free space
+        file_id, blocks, free = disk[idx]
         if free > 0:
             end_idx = len(disk) - 1
             if end_idx == idx:
                 break
-            end_key, end_file, _ = disk[end_idx]
+            end_id, end_blocks, _ = disk[end_idx]
             # how much of end_file can we take?
-            move_file = min(free, end_file)
-            if move_file == end_file:
+            move_blocks = min(free, end_blocks)
+            if move_blocks == end_blocks:
                 disk.pop(end_idx)
             else:
-                disk[end_idx] = (end_key, end_file - move_file, 0)
-            disk = (
-                disk[: idx + 1]
-                + [(end_key, move_file, free - move_file)]
-                + disk[idx + 1 :]
-            )
-            free -= move_file
-            disk[idx] = (key, file, 0)
-            # logger.debug("suffix: %s %d", str(end_idx), move_file)
-            # logger.debug(f"disk (in): {disk}")
+                disk[end_idx] = (end_id, end_blocks - move_blocks, 0)
+            disk.insert(idx + 1, (end_id, move_blocks, free - move_blocks))
+            disk[idx] = (file_id, blocks, 0)
         idx += 1
-    checksum = 0
-    disk_seq = []
-    for idx, c, free in disk:
-        disk_seq.extend([idx] * c)
-        disk_seq.extend(["."] * free)
-    # logger.info(f"disk_seq: {disk_seq}")
 
-    for idx, c in enumerate(disk_seq):
-        checksum += idx * c
-    return checksum
+    return calc_checksum(disk)
 
 
-def main():
-    puzzle = locations.input_file
+def part2(disk):
+    idx = len(disk) - 1
+    checked = set()
+    while idx > 0:
+        # can we move this file?
+        move_id, move_blocks, move_free = disk[idx]
+        assert move_blocks > 0
+        if move_id in checked:
+            # logger.debug("already checked %d", move_key)
+            idx -= 1
+            continue
+
+        # logger.debug(f"can we move key: {move_key}")
+        checked.add(move_id)
+        for i in range(idx):
+            dest_id, dest_blocks, dest_free = disk[i]
+            if dest_free >= move_blocks:
+                # yes, it fits
+                disk.pop(idx)
+
+                # extend the free space before the removed file
+                before_id, before_blocks, before_free = disk[idx - 1]
+                disk[idx - 1] = (
+                    before_id,
+                    before_blocks,
+                    before_free + move_blocks + move_free,
+                )
+
+                # consume the destination free space, as we append it to the moved file
+                disk[i] = (dest_id, dest_blocks, 0)
+                # insert the moved file after with any remaining free space
+                disk.insert(i + 1, (move_id, move_blocks, dest_free - move_blocks))
+                # skip decrementing idx, as we inserted an element
+                break
+        else:  # no move found
+            idx -= 1
+
+    return calc_checksum(disk)
+
+
+def run_sample():
     puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         data = f.read().strip()
 
-    # logger.debug(data)
-    idx = 0
-    disk = []
-    while idx < len(data):
-        file = int(data[idx])
-        free = int(data[idx + 1]) if idx + 1 < len(data) else 0
-        disk.append((idx // 2, file, free))
-        idx += 2
-    # logger.debug(disk)
+    disk = build_disk(data)
+    part1_checksum = part1(disk)
+    logger.info(f"Checksum: {part1_checksum}")
+    assert part1_checksum == 1928
 
-    # logger.info(f"Checksum: {part1(disk)}")  # low 85635411453
-    idx = len(disk) - 1
-    while idx >= 0:
-        # can we move this?
-        key, file, free = disk[idx]
-        # logger.debug(f"disk (start): {disk}")
-        # logger.debug(f"can we move key: {key}")
-        for i in range(idx - 1):
-            key2, file2, free2 = disk[i]
-            if free2 >= file:
-                # yes, it fits here
-                disk.pop(idx)
-                # extend the free space before
-                key_before, file_before, free_before = disk[idx - 1]
-                disk[idx - 1] = (key_before, file_before, free_before + free + file)
-                # consume the space used
-                disk[i] = (key2, file2, 0)
-                # insert the moved file
-                disk = disk[: i + 1] + [(key, file, free2 - file)] + disk[i + 1 :]
-                # logger.debug("moved %d to %d", key, i + 1)
-                break
-        else:
-            # logger.debug("no fit found for %d", key)
-            idx -= 1
+    disk = build_disk(data)
+    part2_checksum = part2(disk)
+    logger.info(f"Checksum: {part2_checksum}")
+    assert part2_checksum == 2858
 
-    # logger.debug(f"disk (end): {disk}")
-    checksum = 0
-    disk_seq = []
-    for idx, c, free in disk:
-        disk_seq.extend([idx] * c)
-        disk_seq.extend(["."] * free)
-    # logger.info(f"disk_seq: {disk_seq}")
 
-    for idx, c in enumerate(disk_seq):
-        if c != ".":
-            checksum += idx * c
-    logger.info(f"Checksum: {checksum}")  # high 6381625147860
+def main():
+    run_sample()
+
+    puzzle = locations.input_file
+    # puzzle = locations.sample_input_file
+    with open(puzzle, mode="rt") as f:
+        data = f.read().strip()
+
+    disk = build_disk(data)
+    part1_checksum = part1(disk)
+    logger.info(f"Checksum: {part1_checksum}")
+    assert part1_checksum == 6359213660505
+
+    disk = build_disk(data)
+    part2_checksum = part2(disk)
+    logger.info(f"Checksum: {part2_checksum}")  # 6381528943428 < answer < 6381625147860
+    assert part2_checksum == 6381624803796
 
 
 if __name__ == "__main__":
