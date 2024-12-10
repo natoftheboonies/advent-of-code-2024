@@ -125,8 +125,26 @@ def run_sample():
     assert part2_checksum == 2858
 
 
+def build_disk_again(data):
+    idx = 0
+    files = []
+    free_spaces = []
+    block_id = 0
+    while idx < len(data):
+        file_id = idx // 2
+        blocks = int(data[idx])
+        free = int(data[idx + 1]) if idx + 1 < len(data) else 0
+        files.append([block_id, blocks, file_id])
+        block_id += blocks
+        if free > 0:
+            free_spaces.append([block_id, free])
+            block_id += free
+        idx += 2
+    return files, free_spaces
+
+
 def main():
-    run_sample()
+    # run_sample()
 
     puzzle = locations.input_file
     # puzzle = locations.sample_input_file
@@ -135,13 +153,32 @@ def main():
 
     disk = build_disk(data)
     part1_checksum = part1(disk)
-    logger.info(f"Checksum: {part1_checksum}")
-    assert part1_checksum == 6359213660505
+    logger.info(f"Part 1: {part1_checksum}")
+    # assert part1_checksum == 6359213660505
 
-    disk = build_disk(data)
-    part2_checksum = part2(disk)
-    logger.info(f"Checksum: {part2_checksum}")  # 6381528943428 < answer < 6381625147860
-    assert part2_checksum == 6381624803796
+    # disk = build_disk(data)
+    # part2_checksum = part2(disk)
+    # logger.info(f"Checksum: {part2_checksum}")  # 6381528943428 < answer < 6381625147860
+    # assert part2_checksum == 6381624803796
+    files, free_spaces = build_disk_again(data)
+
+    # files are (index, size, file_id)
+
+    for file in reversed(files):
+        for free_space in free_spaces:
+            if free_space[0] >= file[0]:
+                break  # no moving files backwards
+            if file[1] <= free_space[1]:
+                # logger.debug(f"moving {file} to {free_space}")
+                file[0] = free_space[0]
+                # reduce and shift free space
+                free_space[1] = free_space[1] - file[1]
+                free_space[0] = free_space[0] + file[1]
+
+    checksum_again = 0
+    for i, n, id in files:
+        checksum_again += id * (i * n + n * (n - 1) // 2)
+    logger.info(f"Part 2: {checksum_again}")
 
 
 if __name__ == "__main__":
