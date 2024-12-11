@@ -23,21 +23,21 @@ except ValueError as e:
 
 
 rules = {
-    "": ["1"],
-    "0": ["1"],
-    "1": ["2024"],
-    "2024": ["20", "24"],
+    0: [1],
+    1: [2024],
+    2024: [20, 24],
 }
 
 
 def split(rune):
     if not rune in rules:
-        if len(rune) % 2 == 0:
-            left = rune[: len(rune) // 2].lstrip("0")
-            right = rune[len(rune) // 2 :].lstrip("0")
+        str_rune = str(rune)
+        if len(str_rune) % 2 == 0:
+            left = int(str_rune[: len(str_rune) // 2])
+            right = int(str_rune[len(str_rune) // 2 :])
             rules[rune] = [left, right]
         else:
-            replace = str(int(rune) * 2024)
+            replace = rune * 2024
             rules[rune] = [replace]
     return rules[rune]
 
@@ -51,16 +51,33 @@ def main():
         # data = "0 1 10 99 999".split()
     # logger.debug(data)
 
+    state_map = dict()
+    for rune in data:
+        state_map[int(rune)] = 1
+
     for _ in range(25):
-        next_gen = list()
-        for rune in data:
+        next_state = dict()
+        for rune in state_map:
             next_rune = split(rune)
-            next_gen.extend(next_rune)
-        # logger.debug(next_gen)
-        data = next_gen
+            for nr in next_rune:
+                next_state[nr] = next_state.get(nr, 0) + state_map[rune]
+        state_map = next_state
 
     logger.debug("len rules: %d", len(rules))
-    logger.info(f"Part 1: {len(data)}")  # not 165428
+    part1 = sum(state_map.values())
+    logger.info(f"Part 1: {part1}")
+
+    for _ in range(50):
+        next_state = dict()
+        for rune in state_map:
+            next_rune = split(rune)
+            for nr in next_rune:
+                next_state[nr] = next_state.get(nr, 0) + state_map[rune]
+        state_map = next_state
+
+    logger.debug("len rules: %d", len(rules))
+    part2 = sum(state_map.values())
+    logger.info(f"Part 2: {part2}")
 
 
 if __name__ == "__main__":
