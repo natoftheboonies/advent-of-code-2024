@@ -39,7 +39,7 @@ def main():
         for x, cell in enumerate(row):
             if cell == 0:
                 trailheads.append((x, y))
-    logger.debug(trailheads)
+    # logger.debug(trailheads)
 
     goal_count = 0
     part2_count = 0
@@ -65,7 +65,7 @@ def main():
                     part2_count += 1
 
                 queue.append((nx, ny))
-        logger.debug(f"trailhead {trailhead} found {goals}")
+        # logger.debug(f"trailhead {trailhead} found {goals}")
         goal_count += len(set(goals))
 
     logger.info(f"Part 1: {goal_count}")

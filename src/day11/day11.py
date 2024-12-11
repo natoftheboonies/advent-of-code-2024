@@ -37,8 +37,7 @@ def split(rune):
             right = int(str_rune[len(str_rune) // 2 :])
             rules[rune] = [left, right]
         else:
-            replace = rune * 2024
-            rules[rune] = [replace]
+            rules[rune] = [rune * 2024]
     return rules[rune]
 
 
@@ -47,35 +46,22 @@ def main():
     # puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         data = f.read().split()
-        # data = "125 17".split()
-        # data = "0 1 10 99 999".split()
-    # logger.debug(data)
 
     state_map = dict()
     for rune in data:
         state_map[int(rune)] = 1
 
-    for _ in range(25):
+    for i in range(75):
         next_state = dict()
         for rune in state_map:
             next_rune = split(rune)
             for nr in next_rune:
                 next_state[nr] = next_state.get(nr, 0) + state_map[rune]
         state_map = next_state
+        if i == 24:
+            part1 = sum(state_map.values())
+            logger.info(f"Part 1: {part1}")
 
-    logger.debug("len rules: %d", len(rules))
-    part1 = sum(state_map.values())
-    logger.info(f"Part 1: {part1}")
-
-    for _ in range(50):
-        next_state = dict()
-        for rune in state_map:
-            next_rune = split(rune)
-            for nr in next_rune:
-                next_state[nr] = next_state.get(nr, 0) + state_map[rune]
-        state_map = next_state
-
-    logger.debug("len rules: %d", len(rules))
     part2 = sum(state_map.values())
     logger.info(f"Part 2: {part2}")
 
