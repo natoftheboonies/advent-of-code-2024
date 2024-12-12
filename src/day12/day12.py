@@ -14,7 +14,7 @@ DAY = 12
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -32,7 +32,6 @@ def part1(plots):
                 nx, ny = x + dx, y + dy
                 if (nx, ny) not in plot:
                     perimeter += 1
-        logger.debug(f"Plot {c} with area {area} and perimeter {perimeter}")
         part1 += area * perimeter
     return part1
 
@@ -68,13 +67,11 @@ def main():
 
     for ey, line in enumerate(data):
         for ex, c in enumerate(line):
-            # logger.debug(f"({ex},{ey}): {c}")
             for _, plot in plots:
                 if (ex, ey) in plot:
                     break
             else:
                 # new plot to explore!
-                logger.debug(f"New plot {c} at ({ex},{ey})")
                 queue = [(ex, ey)]
                 plot = set()
                 while queue:
@@ -90,11 +87,8 @@ def main():
                             queue.append((nx, ny))
                 plots.append((c, plot))
 
-    logger.debug(plots)
+    logger.info("Part 1: %s", part1(plots))
 
-    side_ascend = {(0, 1): (1, 0), (1, 0): (0, 1), (0, -1): (1, 0), (-1, 0): (0, 1)}
-
-    # logger.info("Part 1: %s", part1(plots))
     total_price = 0
     for c, plot in plots:
         # calc sides
@@ -107,10 +101,8 @@ def main():
         # logger.debug(f"Plot {c} sides: {sides}")
         side_count = 0
         for side, points in sides.items():
-            logger.debug(f"counting side{side} points: {points}")
             count = 0
-            dx, dy = side_ascend[side]
-            if dy == 0:
+            if side[0] == 0:
                 unique_y = set()
                 for x, y in points:
                     unique_y.add(y)
@@ -128,18 +120,15 @@ def main():
                     filtered_points.sort()
                     sequences = count_continuous_sequences(filtered_points)
                     count += len(sequences)
-            logger.debug(f"side{side} count: {count}")
             side_count += count
 
-        # logger.info(f"Plot {c} has {side_count} sides")
         area = len(plot)
         price = area * side_count
-        logger.info(
+        logger.debug(
             f"A region of {c} plants with price {area} * {side_count} = {price}"
         )
         total_price += price
-        # break
-    logger.info("Total price: %s", total_price)
+    logger.info("Part 2: %s", total_price)
 
 
 if __name__ == "__main__":
