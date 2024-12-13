@@ -15,7 +15,7 @@ DAY = 13
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -34,13 +34,20 @@ a = (bx*py - by*px) / (ay*bx - by*ax)
 """
 
 
+def solve(ax, ay, bx, by, px, py):
+    a = (bx * py - by * px) / (ay * bx - by * ax)
+    b = (px - ax * a) / bx
+    return a, b
+
+
 def main():
     puzzle = locations.input_file
     # puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         data = f.read().split("\n\n")
 
-    cost = 0
+    part1 = 0
+    part2 = 0
     for game in data:
         button_a, button_b, prize = game.strip().split("\n")
         ax, ay = map(int, (val.strip(",")[2:] for val in button_a.split()[2:]))
@@ -49,17 +56,16 @@ def main():
         logger.debug(f"bx: {bx}, by: {by}")
         px, py = map(int, (val.strip(",")[2:] for val in prize.split()[1:]))
         logger.debug(f"px: {px}, py: {py}")
+        a, b = solve(ax, ay, bx, by, px, py)
+        if a.is_integer() and b.is_integer():
+            part1 += a * 3 + b
         px = px + 10000000000000
         py = py + 10000000000000
-        a = (bx * py - by * px) / (ay * bx - by * ax)
-        b = (px - ax * a) / bx
-        logger.debug(f"a: {a}, b: {b}")
+        a, b = solve(ax, ay, bx, by, px, py)
         if a.is_integer() and b.is_integer():
-            cost += a * 3 + b
-            logger.info(
-                f"Winner: {int(a) * ax + int(b) * bx}, {int(a) * ay + int(b) * by}"
-            )
-    logger.info(f"Total cost: {int(cost)}")
+            part2 += a * 3 + b
+    logger.info(f"Part 1: {int(part1)}")
+    logger.info(f"Part 2: {int(part2)}")
     # logger.debug(data)
 
 
