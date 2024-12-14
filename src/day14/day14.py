@@ -33,6 +33,16 @@ move_robot = lambda x, y, vx, vy, c: (
 )
 
 
+def print_robots(robots):
+    for y in range(boundary_y):
+        for x in range(boundary_x):
+            if (x, y) in robots:
+                print(robots.count((x, y)), end="")
+            else:
+                print(".", end="")
+        print()
+
+
 def main():
     puzzle = locations.input_file
     # puzzle = locations.sample_input_file
@@ -63,13 +73,6 @@ def main():
     safety_factor = tl * tr * bl * br
     logger.debug(f"tl: {tl}, tr: {tr}, bl: {bl}, br: {br}")
     logger.info(f"Part 1: {safety_factor}")
-    # for y in range(boundary_y):
-    #     for x in range(boundary_x):
-    #         if (x, y) in robots:
-    #             print(robots.count((x, y)), end="")
-    #         else:
-    #             print(".", end="")
-    #     print()
 
 
 if __name__ == "__main__":
