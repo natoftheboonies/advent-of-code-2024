@@ -34,13 +34,10 @@ move_robot = lambda x, y, vx, vy, c: (
 
 
 def print_robots(robots):
-    for y in range(boundary_y):
-        for x in range(boundary_x):
-            if (x, y) in robots:
-                print(robots.count((x, y)), end="")
-            else:
-                print(".", end="")
-        print()
+    drone_show = [[" " for _ in range(boundary_x)] for _ in range(boundary_y)]
+    for robot in robots:
+        drone_show[robot[1]][robot[0]] = "R"
+    return "\n".join("".join(drone_row) for drone_row in drone_show)
 
 
 def main():
@@ -61,18 +58,33 @@ def main():
     # logger.debug(data)
     tl, tr, bl, br = 0, 0, 0, 0
     for robot in robots:
-        if robot[0] < (boundary_x / 2) - 1 and robot[1] < (boundary_y / 2) - 1:
+        if robot[0] < boundary_x // 2 and robot[1] < boundary_y // 2:
             tl += 1
-            logger.debug(f"tl: {robot}")
-        elif robot[0] > (boundary_x / 2) and robot[1] < (boundary_y / 2) - 1:
+        elif robot[0] > boundary_x // 2 and robot[1] < boundary_y // 2:
             tr += 1
-        elif robot[0] < (boundary_x / 2) - 1 and robot[1] > (boundary_y / 2):
+        elif robot[0] < boundary_x // 2 and robot[1] > boundary_y // 2:
             bl += 1
-        elif robot[0] > (boundary_x / 2) and robot[1] > (boundary_y / 2):
+        elif robot[0] > boundary_x // 2 and robot[1] > boundary_y // 2:
             br += 1
     safety_factor = tl * tr * bl * br
     logger.debug(f"tl: {tl}, tr: {tr}, bl: {bl}, br: {br}")
     logger.info(f"Part 1: {safety_factor}")
+
+    robots = []
+    for line in data:
+        rx, ry, vx, vy = map(int, robot_reg.match(line).groups())
+        robots.append([rx, ry, vx, vy])
+
+    for t in range(1, 100000):
+        for robot in robots:
+            robot[0] = (robot[0] + robot[2]) % boundary_x
+            robot[1] = (robot[1] + robot[3]) % boundary_y
+        # look for cluster of robots
+        drone_show = print_robots(robots)
+        if "RRRRRRRR" in drone_show:
+            print(drone_show)
+            logger.info(f"Part 2: {t}")
+            break
 
 
 if __name__ == "__main__":
