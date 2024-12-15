@@ -14,7 +14,7 @@ DAY = 15
 
 locations = ac.get_locations(__file__)
 logger = ac.retrieve_console_logger(locations.script_name)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # td.setup_file_logging(logger, locations.output_dir)
 try:
     ac.write_puzzle_input_file(YEAR, DAY, locations)
@@ -106,7 +106,7 @@ def main():
         maze, moves = f.read().split("\n\n")
         moves = (move for move in moves.strip() if move != "\n")
         # logger.debug(moves)
-    # part1(maze, moves)
+    part1(maze, moves)
 
     # part2
     walls = set()
@@ -119,7 +119,7 @@ def main():
                 food.add((x * 2, y))
             elif cell == "#":
                 walls.add((x * 2, y))
-    print_state_part2(robot, food, walls)
+    # print_state_part2(robot, food, walls)
     # walls and food store left-side coordinates
     assert all((x + 1, y) not in walls | food for x, y in food | walls | {robot})
 
@@ -191,7 +191,7 @@ def main():
 
     for move in moves:
         # print_state(robot, food, walls)
-        print(f"Move {move}:")
+        # print(f"Move {move}:")
         dx, dy = move_map[move]
         new_robot = (robot[0] + dx, robot[1] + dy)
         can_move, blocks_to_move = try_move(new_robot, (dx, dy), set())
@@ -210,7 +210,7 @@ def main():
 
             assert len(food) == food_before
         robot = new_robot
-    print_state_part2(robot, food, walls)
+    # print_state_part2(robot, food, walls)
     part2 = sum(100 * y + x for x, y in food)
     logger.info("Part 2: %s", part2)
 
