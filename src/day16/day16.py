@@ -42,20 +42,25 @@ def main():
     logger.debug("start: %s, end %s", start, end)
     queue = []
     # cost, position, heading
-    heapq.heappush(queue, (0, start, (1, 0)))
+    heapq.heappush(queue, (0, start, (1, 0), [(1, 0)]))
     shortest = dict()
+    good_seats = set()
+    best_cost = 1000000000000
     while queue:
-        cost, position, heading = heapq.heappop(queue)
+        cost, position, heading, path = heapq.heappop(queue)
         if position == end:
-            logger.info("Shortest path to end: %d", cost)
-            break
+            best_cost = min(best_cost, cost)
+            if best_cost == cost:
+                good_seats.update(path)
+
+            # break
         # try continuing forward
         forward = (position[0] + heading[0], position[1] + heading[1])
         # try turning left
-        turnleft = (-heading[1], heading[0])  # 0, 1 -> 1, 0 -> 0, -1 -> -1, 0
+        turnleft = (heading[1], -heading[0])  # 0, 1 -> 1, 0 -> 0, -1 -> -1, 0
         left = (position[0] + turnleft[0], position[1] + turnleft[1])
         # try turning right
-        turnright = (heading[1], -heading[0])
+        turnright = (-heading[1], heading[0])
         right = (position[0] + turnright[0], position[1] + turnright[1])
 
         for add_cost, pos, head in (
@@ -66,9 +71,12 @@ def main():
             if pos in maze:
                 continue
 
-            if not (pos, head) in shortest or shortest[(pos, head)] > cost + add_cost:
+            # if we haven't been here or we have but it was more expensive
+            if not (pos, head) in shortest or shortest[(pos, head)] >= cost + add_cost:
                 shortest[(pos, head)] = cost + add_cost
-                heapq.heappush(queue, (cost + add_cost, pos, head))
+                heapq.heappush(queue, (cost + add_cost, pos, head, path + [pos]))
+    logger.info("Part 1: %s", best_cost)
+    logger.info("Part 2: %s", len(good_seats))
 
 
 if __name__ == "__main__":
