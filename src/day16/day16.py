@@ -42,7 +42,7 @@ def main():
     logger.debug("start: %s, end %s", start, end)
     queue = []
     # cost, position, heading
-    heapq.heappush(queue, (0, start, (1, 0), [(1, 0)]))
+    heapq.heappush(queue, (0, start, (1, 0), [start]))
     shortest = dict()
     good_seats = set()
     best_cost = 1000000000000
@@ -60,7 +60,7 @@ def main():
         turnleft = (heading[1], -heading[0])  # 0, 1 -> 1, 0 -> 0, -1 -> -1, 0
         left = (position[0] + turnleft[0], position[1] + turnleft[1])
         # try turning right
-        turnright = (-heading[1], heading[0])
+        turnright = (-heading[1], heading[0])  # 0, 1 -> -1, 0 -> 0, -1 -> 1, 0
         right = (position[0] + turnright[0], position[1] + turnright[1])
 
         for add_cost, pos, head in (
