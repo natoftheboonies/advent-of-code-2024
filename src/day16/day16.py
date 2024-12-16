@@ -22,12 +22,10 @@ try:
 except ValueError as e:
     logger.error(e)
 
-headings = [(1, 0), (0, 1), (-1, 0), (0, -1)]  # E, S, W, N
-
 
 def main():
     puzzle = locations.input_file
-    puzzle = locations.sample_input_file
+    # puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         data = f.read().splitlines()
 
@@ -44,30 +42,33 @@ def main():
     logger.debug("start: %s, end %s", start, end)
     queue = []
     # cost, position, heading
-    heapq.heappush(queue, (0, start, (0, 1)))
+    heapq.heappush(queue, (0, start, (1, 0)))
     shortest = dict()
     while queue:
         cost, position, heading = heapq.heappop(queue)
-        state = (position, heading)
-
-        if state in shortest:
-            if shortest[state] <= cost:
-                continue
-            else:
-                shortest[state] = cost
         if position == end:
-            logger.info("Found end at %s", cost)
+            logger.info("Shortest path to end: %d", cost)
             break
         # try continuing forward
         forward = (position[0] + heading[0], position[1] + heading[1])
-        if forward not in maze:
-            heapq.heappush(queue, (cost + 1, forward, heading))
         # try turning left
-        left = (heading[1], -heading[0])  # 0, 1 -> 1, 0 -> 0, -1 -> -1, 0
-        heapq.heappush(queue, (cost + 1000, position, left))
+        turnleft = (-heading[1], heading[0])  # 0, 1 -> 1, 0 -> 0, -1 -> -1, 0
+        left = (position[0] + turnleft[0], position[1] + turnleft[1])
         # try turning right
-        right = (-heading[1], heading[0])
-        heapq.heappush(queue, (cost + 1000, position, right))
+        turnright = (heading[1], -heading[0])
+        right = (position[0] + turnright[0], position[1] + turnright[1])
+
+        for add_cost, pos, head in (
+            (1, forward, heading),
+            (1001, left, turnleft),
+            (1001, right, turnright),
+        ):
+            if pos in maze:
+                continue
+
+            if not (pos, head) in shortest or shortest[(pos, head)] > cost + add_cost:
+                shortest[(pos, head)] = cost + add_cost
+                heapq.heappush(queue, (cost + add_cost, pos, head))
 
 
 if __name__ == "__main__":
