@@ -39,9 +39,9 @@ def run_program(reg, program):
     output = []
     ip = 0
     while ip < len(program):
-        op = program[ip]
+        opcode = program[ip]
+        operand = program[ip + 1]
         # logger.debug("ip=%d, op=%s, reg=%s", ip, op, reg)
-        opcode, operand = op
         if opcode == 0:  # adv
             reg[0] = reg[0] // (2 ** combo(operand))
         elif opcode == 1:  # bxl
@@ -51,7 +51,7 @@ def run_program(reg, program):
         elif opcode == 3:  # jnz
             assert operand % 2 == 0
             if reg[0] != 0:
-                ip = operand // 2
+                ip = operand
                 continue
         elif opcode == 4:  # bxc
             reg[1] = reg[1] ^ reg[2]
@@ -61,8 +61,8 @@ def run_program(reg, program):
             reg[1] = reg[0] // (2 ** combo(operand))
         elif opcode == 7:  # cdv
             reg[2] = reg[0] // (2 ** combo(operand))
-        ip += 1
-    logger.debug("output=%s", output)
+        ip += 2
+    # logger.debug("output=%s", output)
     # not 7,7,7,7,7,7,7,7,7
     return output
 
@@ -74,14 +74,33 @@ def main():
         data = f.read()
         registers, program = data.split("\n\n")
         registers = registers.splitlines()
-        program = tuple(map(int, program.strip().split(": ")[1].split(",")))
-        ops = [(program[i], program[i + 1]) for i in range(0, len(program), 2)]
+        program = list(map(int, program.strip().split(": ")[1].split(",")))
         assert len(program) % 2 == 0
         reg = [int(line.split(": ")[1]) for line in registers]
-        logger.debug("reg=%s, prog=%s", reg, ops)
-        output = run_program(reg, ops)
+        logger.debug("reg=%s, prog=%s", reg, program)
+        output = run_program(reg, program)
         logger.info("Part 1: %s", ",".join(map(str, output)))
 
+    # time to find a teacher :)
+    # part 2 credit: https://www.reddit.com/r/adventofcode/comments/1hg38ah/comment/m2gfogr/
+    # recursively look for a value of reg[0] that will make the program output the sub_program
+    def find_reg_a(sub_program):
+        test_a = 0 if len(sub_program) == 1 else 8 * find_reg_a(sub_program[1:])
+        while True:
+            reg = [test_a, 0, 0]
+            output = run_program(reg, program)
+            # logger.debug(
+            #     "test_a=%d, output=%s, sub_program=%s", test_a, output, sub_program
+            # )
+            if output == list(sub_program):
+                return test_a
+            test_a += 1
+
+    # reg_a = find_reg_a(program[-3:])
+    # logger.debug(run_program([reg_a, 0, 0], program))
+    reg_a = find_reg_a(program)
+
+    logger.info("Part 2: %s", reg_a)
     # logger.debug(data)
 
 
