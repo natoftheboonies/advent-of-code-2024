@@ -80,15 +80,18 @@ def main():
     cost, path = run_maze()
     logger.info("Part 1: %s", cost)
 
-    for i in range(initial_bytes, len(bytes)):
-        # if i % 10 == 0:
-        #     logger.debug(i)
-        next_byte = bytes[i]
-        maze.append(next_byte)
-        if next_byte in path:
-            cost, path = run_maze()
-            if cost == -1:
-                break
+    # binary search from initial_bytes to len(bytes)
+    left, right = initial_bytes, len(bytes) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        maze = bytes[:mid]
+        cost, path = run_maze()
+        if cost == -1:
+            right = mid - 1
+        else:
+            left = mid + 1
+    next_byte = bytes[right]
+
     logger.info("Part 2: %s", ",".join(map(str, next_byte)))
 
 
