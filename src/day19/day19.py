@@ -38,25 +38,30 @@ def main():
     @functools.cache
     def match(pattern):
         # logger.debug(f"Matching {pattern}")
+        count = 0
         for towel in towels:
-            if towel == pattern:
-                return True
             if pattern.startswith(towel):
-                if match(pattern[len(towel) :]):
-                    return True
-        return False
+                # logger.debug(f"Matched {towel} with {pattern}")
+                if towel == pattern:
+                    count += 1
+                count += match(pattern[len(towel) :])
+        return count
 
-    # match(patterns[1])
+    # match(patterns[2])
     # return
+    all_possible = 0
     for i, pattern in enumerate(patterns):
-        logger.debug(f"{i}: Matching {pattern}")
-        if match(pattern):
+        possible = match(pattern)
+        if possible > 0:
+            logger.debug(f"{i}: Matching {pattern}: {possible}")
+            all_possible += match(pattern)
             count += 1
 
         else:
             logger.debug(f"{i}: Failed to match {pattern}")
 
     logger.info(count)
+    logger.info(all_possible)  # not 811
 
 
 if __name__ == "__main__":
