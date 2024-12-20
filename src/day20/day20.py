@@ -102,6 +102,21 @@ def main():
 
     logger.info("Part 1: %s", part1)  # not 1331
 
+    part2 = 0
+    path_seq = list(shortest.keys())
+    for i in range(len(path_seq)):
+        bx, by = path_seq[i]
+        for j in range(i + 1, len(path_seq)):
+            ex, ey = path_seq[j]
+            dist = abs(bx - ex) + abs(by - ey)
+            if (
+                dist <= 20
+                and abs(shortest[(bx, by)] - shortest[(ex, ey)]) >= threshold + dist
+            ):
+                part2 += 1
+
+    logger.info("Part 2: %s", part2)  # low 932026
+
 
 if __name__ == "__main__":
     t1 = time.perf_counter()
