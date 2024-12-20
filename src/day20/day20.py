@@ -53,7 +53,7 @@ def main():
             cost, position, path = heapq.heappop(queue)
             if position == end:
                 best_cost = min(best_cost, cost)
-                return best_cost, path
+                return best_cost, shortest
             px, py = position
             for dx, dy in ((0, 1), (1, 0), (0, -1), (-1, 0)):
                 new_pos = (px + dx, py + dy)
@@ -81,61 +81,25 @@ def main():
         #     print()
 
     maze = base_maze.copy()
-    baseline_cost, _ = run_maze()
+    baseline_cost, shortest = run_maze()
+
+    threshold = 100
+
+    part1 = 0
+    for x, y in shortest.keys():
+        for nx, ny in (x + 2, y), (x + 1, y + 1), (x, y + 2), (x, y - 1):
+            if nx < 0 or nx >= bound_x or ny < 0 or ny >= bound_y:
+                continue
+            if (nx, ny) in maze:
+                continue
+            if abs(shortest[(x, y)] - shortest[(nx, ny)]) >= threshold + 2:
+                part1 += 1
+
     # maze.remove((8, 1))
     # check_cost, _ = run_maze()
     # logger.debug("Check cost: %s", check_cost)
     # return
 
-    threshold = 100
-    visited = set()
-    part1 = 0
-
-    best_cost = baseline_cost
-    for x, y in base_maze:
-        if x == 0 or y == 0 or x == bound_x or y == bound_y:
-            continue
-
-        # logger.debug("Removing walls at %s, %s", x, y)
-        # copy maze without this wall
-        maze = base_maze.copy()
-        maze.remove((x, y))
-        visited.add((x, y))
-        has_right = (x + 1, y) in maze
-        has_down = (x, y + 1) in maze
-        if not has_right and not has_down:
-            cost, _ = run_maze()
-            best_cost = min(best_cost, cost)
-            if baseline_cost - cost >= threshold:
-                part1 += 1
-                logger.debug(
-                    "cheat at x: %s, y: %s saves %s", x, y, baseline_cost - cost
-                )
-            # logger.debug("Single Cost: %s", cost)
-        if has_right and not visited.__contains__((x - 1, y)):
-            maze.remove((x + 1, y))
-            cost, _ = run_maze()
-            best_cost = min(best_cost, cost)
-            maze.add((x + 1, y))
-            if baseline_cost - cost >= threshold:
-                part1 += 1
-                logger.debug(
-                    "cheat at x: %s, y: %s saves %s", x, y, baseline_cost - cost
-                )
-            # logger.debug("Right Cost: %s", cost)
-        if has_down and not visited.__contains__((x, y - 1)):
-            maze.remove((x, y + 1))
-            cost, _ = run_maze()
-            best_cost = min(best_cost, cost)
-            maze.add((x, y + 1))
-            if baseline_cost - cost >= threshold:
-                part1 += 1
-                logger.debug(
-                    "cheat at x: %s, y: %s saves %s", x, y, baseline_cost - cost
-                )
-            # logger.debug("Down Cost: %s", cost)
-
-    logger.debug("Best: %s", best_cost)
     logger.info("Part 1: %s", part1)  # not 1331
 
 
