@@ -70,15 +70,6 @@ def main():
                     shortest[new_pos] = cost + 1
                     heapq.heappush(queue, (cost + 1, new_pos, path + [new_pos]))
         return -1, None
-        # for y in range(bound):
-        #     for x in range(bound):
-        #         if (x, y) in maze:
-        #             print("#", end="")
-        #         elif (x, y) in path:
-        #             print("O", end="")
-        #         else:
-        #             print(".", end="")
-        #     print()
 
     maze = base_maze.copy()
     baseline_cost, shortest = run_maze()
@@ -95,12 +86,7 @@ def main():
             if abs(shortest[(x, y)] - shortest[(nx, ny)]) >= threshold + 2:
                 part1 += 1
 
-    # maze.remove((8, 1))
-    # check_cost, _ = run_maze()
-    # logger.debug("Check cost: %s", check_cost)
-    # return
-
-    logger.info("Part 1: %s", part1)  # not 1331
+    logger.info("Part 1: %s", part1)
 
     part2 = 0
     path_seq = list(shortest.keys())
@@ -115,7 +101,7 @@ def main():
             ):
                 part2 += 1
 
-    logger.info("Part 2: %s", part2)  # low 932026
+    logger.info("Part 2: %s", part2)
 
 
 if __name__ == "__main__":
