@@ -23,14 +23,14 @@ try:
 except ValueError as e:
     logger.error(e)
 
-key1 = (("7", "8", "9"), ("4", "5", "6"), ("1", "2", "3"), (None, "0", "A"))
-key2 = ((None, "^", "A"), ("<", "v", ">"))
-directions = {"v": (0, 1), "<": (-1, 0), ">": (1, 0), "^": (0, -1)}
+numeric_keypad = (("7", "8", "9"), ("4", "5", "6"), ("1", "2", "3"), (None, "0", "A"))
+direction_keypad = ((None, "^", "A"), ("<", "v", ">"))
+directions = {">": (1, 0), "v": (0, 1), "<": (-1, 0), "^": (0, -1)}
 directions = {v: k for k, v in directions.items()}
 
 
 @cache
-def find_move(c, robot, key):
+def find_shortest(c, robot, key):
     visited = dict()
     visited[robot] = 0
     state = (robot, [])
@@ -51,6 +51,15 @@ def find_move(c, robot, key):
     return None
 
 
+def find_moves(sequence, robot, key):
+    all_moves = []
+    for c in sequence:
+        robot, moves = find_shortest(c, robot, key)
+        # logger.debug(f"Robot1: {robot1}, moves: {moves}")
+        all_moves.extend(moves)
+    return all_moves
+
+
 def main():
     puzzle = locations.input_file
     puzzle = locations.sample_input_file
@@ -59,39 +68,17 @@ def main():
         assert len(data) == 5
 
     start1 = (2, 3)
-    assert key1[start1[1]][start1[0]] == "A"
+    assert numeric_keypad[start1[1]][start1[0]] == "A"
     start2 = (2, 0)
-    assert key2[start2[1]][start2[0]] == "A"
+    assert direction_keypad[start2[1]][start2[0]] == "A"
 
-    for sample in data:
-        # logger.debug(data)
-        # sample = "980A"
-
-        robot1 = start1
-        all_moves = []
-        for c in sample:
-            robot1, moves = find_move(c, robot1, key1)
-            # logger.debug(f"Robot1: {robot1}, moves: {moves}")
-            all_moves.extend(moves)
-        logger.debug("".join(all_moves))
-        robot2 = start2
-        robot2_moves = []
-        for c in all_moves:
-            # logger.debug(f"Robot2: {robot2}, moves: {moves}")
-            robot2, moves = find_move(c, robot2, key2)
-            robot2_moves.extend(moves)
-        logger.debug("".join(robot2_moves))
-        robot3_moves = []
-        robot3 = start2
-        for c in robot2_moves:
-            robot3, moves = find_move(c, robot3, key2)
-            # logger.debug(f"Robot2: {robot2}, moves: {moves}")
-
-            robot3_moves.extend(moves)
-        logger.debug("".join(robot3_moves))
-        multiplier = "".join(n for n in sample if n.isdigit())
+    for code in data:
+        robot1_moves = find_moves(code, start1, numeric_keypad)
+        robot2_moves = find_moves(robot1_moves, start2, direction_keypad)
+        robot3_moves = find_moves(robot2_moves, start2, direction_keypad)
+        multiplier = "".join(n for n in code if n.isdigit())
         result = len(robot3_moves) * int(multiplier)
-        logger.debug(f"{sample}: {len(robot3_moves)} * {multiplier} = {result}")
+        logger.debug(f"{code}: {len(robot3_moves)} * {multiplier} = {result}")
 
 
 # todo: find all the shortest paths, because entering them is not always the shortest path
