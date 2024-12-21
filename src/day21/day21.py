@@ -8,7 +8,6 @@ Solving https://adventofcode.com/2024/day/21
 import logging
 import time
 import aoc_common.aoc_commons as ac
-from collections import deque
 from functools import cache
 
 YEAR = 2024
@@ -23,96 +22,101 @@ try:
 except ValueError as e:
     logger.error(e)
 
-numeric_keypad = (("7", "8", "9"), ("4", "5", "6"), ("1", "2", "3"), (None, "0", "A"))
-direction_keypad = ((None, "^", "A"), ("<", "v", ">"))
-directions = {">": (1, 0), "v": (0, 1), "<": (-1, 0), "^": (0, -1)}
-directions = {v: k for k, v in directions.items()}
+
+# credit to https://www.reddit.com/r/adventofcode/comments/1hj2odw/comment/m35qlna/
+def create_keypad(keys):
+    def press(start, end):
+        start_idx = keys.index(start)
+        end_idx = keys.index(end)
+        gap_idx = keys.index("_")
+
+        y_diff = (end_idx // 3) - (start_idx // 3)
+        x_diff = (end_idx % 3) - (start_idx % 3)
+
+        x_moves = (">" if x_diff > 0 else "<") * abs(x_diff)
+        y_moves = ("v" if y_diff > 0 else "^") * abs(y_diff)
+
+        # moving y would cross gap
+        if end_idx // 3 == gap_idx // 3 and start_idx % 3 == gap_idx % 3:
+            return x_moves + y_moves
+        # moving x would cross gap
+        elif start_idx // 3 == gap_idx // 3 and end_idx % 3 == gap_idx % 3:
+            return y_moves + x_moves
+        else:
+            # move order: <, v, ^, >
+            if ">" in x_moves:
+                return y_moves + x_moves
+            else:
+                return x_moves + y_moves
+
+    return press
 
 
-@cache
-def find_shortest(c, robot, key):
-    visited = dict()
-    visited[robot] = 0
-    state = (robot, [])
-    q = deque([state])
-    while q:
-        robot, path = q.popleft()
-        # logger.debug(f"Robot: {robot}, path: {path}")
-        x, y = robot
-        if key[y][x] == c:
-            return (x, y), path + ["A"]
-        for dx, dy in directions:
-            nx, ny = x + dx, y + dy
-            if 0 <= nx < len(key[0]) and 0 <= ny < len(key):
-                if key[ny][nx] is not None and (nx, ny) not in visited:
-                    visited[(nx, ny)] = visited[(x, y)] + 1
-                    q.append(((nx, ny), path + [directions[(dx, dy)]]))
-    logger.error(f"Could not find {c} from {robot}")
-    return None
+numeric = """
+789
+456
+123
+_0A
+""".strip().replace(
+    "\n", ""
+)
+keypad_numeric = create_keypad(numeric)
+
+directional = """
+_^A
+<v>
+""".strip().replace(
+    "\n", ""
+)
+keypad_directional = create_keypad(directional)
 
 
-def find_moves(sequence, robot, key):
-    all_moves = []
-    for c in sequence:
-        robot, moves = find_shortest(c, robot, key)
-        # logger.debug(f"Robot1: {robot1}, moves: {moves}")
-        all_moves.extend(moves)
-    return all_moves
+def count_keypad_steps(code, keypad_chain):
+
+    @cache
+    def count_keypress(current, target, depth):
+        sequence = keypad_chain[depth](current, target) + "A"
+        if depth == len(keypad_chain) - 1:
+            return len(sequence)
+        else:
+            length = 0
+            current = "A"
+            for target in sequence:
+                length += count_keypress(current, target, depth + 1)
+                current = target
+            return length
+
+    length = 0
+    current = "A"
+    for target in code:
+        length += count_keypress(current, target, 0)
+        current = target
+    return length
 
 
 def main():
     puzzle = locations.input_file
-    puzzle = locations.sample_input_file
+    # puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         data = f.read().splitlines()
         assert len(data) == 5
 
-    start1 = (2, 3)
-    assert numeric_keypad[start1[1]][start1[0]] == "A"
-    start2 = (2, 0)
-    assert direction_keypad[start2[1]][start2[0]] == "A"
+    keypad_chain = [keypad_numeric] + [keypad_directional] * 2
+    part2_keypad_chain = [keypad_numeric] + [keypad_directional] * 25
 
-    def sort_between_A(lst):
-        # may be invalid because grid contains an "shall not pass" spot.
-        result = []
-        segment = []
-
-        for char in lst:
-            if char == "A":
-                if segment:
-                    result.extend(sorted(segment))
-                    segment = []
-                result.append(char)
-            else:
-                segment.append(char)
-
-        if segment:
-            result.extend(sorted(segment))
-
-        return result
-
-    total_result = 0
+    part1 = 0
+    part2 = 0
     for code in data:
-        robot1_moves = find_moves(code, start1, numeric_keypad)
-        logger.debug(f"{code}: {''.join(robot1_moves)}")
-        # sort moves between each 'A'
-        robot1_moves = sort_between_A(robot1_moves)
-        logger.debug(f"{code}: {''.join(robot1_moves)}")
+        sequence_length = count_keypad_steps(code, keypad_chain)
+        sequence_length_part2 = count_keypad_steps(code, part2_keypad_chain)
+        multiplier = int("".join(n for n in code if n.isdigit()))
+        result = sequence_length * multiplier
+        logger.debug(f"{code}: {sequence_length} * {multiplier} = {result}")
+        part1 += result
+        part2 += sequence_length_part2 * multiplier
 
-        robot2_moves = find_moves(robot1_moves, start2, direction_keypad)
-        logger.debug(f"{code}: {''.join(robot2_moves)}")
-
-        robot3_moves = find_moves(robot2_moves, start2, direction_keypad)
-        logger.debug(f"{code}: {''.join(robot3_moves)}")
-        multiplier = "".join(n for n in code if n.isdigit())
-        result = len(robot3_moves) * int(multiplier)
-        logger.debug(f"{code}: {len(robot3_moves)} * {multiplier} = {result}")
-        total_result += result
-
-    logger.info(f"Total result: {total_result}")
-
-
-# todo: find all the shortest paths, because entering them is not always the shortest path
+    logger.info(f"Part 1: {part1}")
+    logger.info(f"Part 2: {part2}")
 
 
 if __name__ == "__main__":
