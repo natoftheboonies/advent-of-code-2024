@@ -72,13 +72,44 @@ def main():
     start2 = (2, 0)
     assert direction_keypad[start2[1]][start2[0]] == "A"
 
+    def sort_between_A(lst):
+        # may be invalid because grid contains an "shall not pass" spot.
+        result = []
+        segment = []
+
+        for char in lst:
+            if char == "A":
+                if segment:
+                    result.extend(sorted(segment))
+                    segment = []
+                result.append(char)
+            else:
+                segment.append(char)
+
+        if segment:
+            result.extend(sorted(segment))
+
+        return result
+
+    total_result = 0
     for code in data:
         robot1_moves = find_moves(code, start1, numeric_keypad)
+        logger.debug(f"{code}: {''.join(robot1_moves)}")
+        # sort moves between each 'A'
+        robot1_moves = sort_between_A(robot1_moves)
+        logger.debug(f"{code}: {''.join(robot1_moves)}")
+
         robot2_moves = find_moves(robot1_moves, start2, direction_keypad)
+        logger.debug(f"{code}: {''.join(robot2_moves)}")
+
         robot3_moves = find_moves(robot2_moves, start2, direction_keypad)
+        logger.debug(f"{code}: {''.join(robot3_moves)}")
         multiplier = "".join(n for n in code if n.isdigit())
         result = len(robot3_moves) * int(multiplier)
         logger.debug(f"{code}: {len(robot3_moves)} * {multiplier} = {result}")
+        total_result += result
+
+    logger.info(f"Total result: {total_result}")
 
 
 # todo: find all the shortest paths, because entering them is not always the shortest path
