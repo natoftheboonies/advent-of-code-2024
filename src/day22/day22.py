@@ -33,7 +33,7 @@ def next_number(number):
 
 def main():
     puzzle = locations.input_file
-    puzzle = locations.sample_input_file
+    # puzzle = locations.sample_input_file
     with open(puzzle, mode="rt") as f:
         data = f.read().splitlines()
         numbers = list(map(int, data))
@@ -41,30 +41,39 @@ def main():
     # logger.debug(numbers)
 
     history = list()
+    # transform into [a,b,c,d]: sum
     price_chart = dict()
+    # only first time a sequence is seen
+    seen_sequences = [set() for _ in numbers]
+
+    sample_best = (-2, 1, -1, 3)
 
     for _ in range(2000):
         numbers = list(map(next_number, numbers))
         prices = list(map(lambda x: x % 10, numbers))  # get the last digit
-        if history:
+        if len(history) > 0:
             price_changes = [p - h for p, h in zip(prices, history[-1])]
             history[-1] = price_changes
 
-        if len(history) > 4:
-            history.pop(0)
+        if len(history) == 4:
             for i, price in enumerate(prices):
                 last_4 = tuple([h[i] for h in history])
+                if last_4 == sample_best:
+                    logger.debug(f"{sample_best}: {price} for seq {i}")
+                if last_4 in seen_sequences[i]:
+                    continue
+                seen_sequences[i].add(last_4)
                 price_chart[last_4] = price_chart.get(last_4, 0) + price
+            history.pop(0)
         history.append(prices)
 
     logger.info("Part 1: %s", sum(numbers))
     # find max value in price_chart
     max_value = max(price_chart.values())
-    logger.info("Max value in price_chart: %s", max_value)
+    logger.info("Part 2: %s", max_value)
     max_key = max(price_chart, key=price_chart.get)
-    logger.info("Key for max value in price_chart: %s", max_key)
-
-    # transform into [a,b,c,d]: sum
+    logger.debug("for key: %s", max_key)
+    logger.debug(price_chart[sample_best])
 
 
 if __name__ == "__main__":
