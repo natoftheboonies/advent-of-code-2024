@@ -46,8 +46,6 @@ def main():
     # only first time a sequence is seen
     seen_sequences = [set() for _ in numbers]
 
-    sample_best = (-2, 1, -1, 3)
-
     for _ in range(2000):
         numbers = list(map(next_number, numbers))
         prices = list(map(lambda x: x % 10, numbers))  # get the last digit
@@ -58,8 +56,6 @@ def main():
         if len(history) == 4:
             for i, price in enumerate(prices):
                 last_4 = tuple([h[i] for h in history])
-                if last_4 == sample_best:
-                    logger.debug(f"{sample_best}: {price} for seq {i}")
                 if last_4 in seen_sequences[i]:
                     continue
                 seen_sequences[i].add(last_4)
@@ -73,7 +69,6 @@ def main():
     logger.info("Part 2: %s", max_value)
     max_key = max(price_chart, key=price_chart.get)
     logger.debug("for key: %s", max_key)
-    logger.debug(price_chart[sample_best])
 
 
 if __name__ == "__main__":
