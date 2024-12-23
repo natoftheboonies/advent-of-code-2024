@@ -24,21 +24,8 @@ except ValueError as e:
     logger.error(e)
 
 
-def find_cliques(graph, size=3):
-    cliques = []
-
-    # Get all subsets of vertices
-    vertices = list(graph.keys())
-    for subset in combinations(vertices, size):
-        # Check if the subset is a clique
-        if all(v2 in graph[v1] for v1 in subset for v2 in subset if v1 != v2):
-            cliques.append(set(subset))
-
-    return cliques
-
-
 # thx chatgpt: TIL cliques and Bron–Kerbosch algorithm.
-def bron_kerbosch(R, P, X, graph, cliques):
+def bron_kerbosch(R: set, P: set, X: set, graph: dict, cliques: list):
     """Bron-Kerbosch algorithm to find all maximal cliques in a graph."""
     if not P and not X:  # Base case: no more candidates to add
         cliques.append(R)  # Found a maximal clique
@@ -79,8 +66,6 @@ def main():
         graph[a].add(b)
         graph[b].add(a)
 
-    # cliques = find_cliques(graph)
-    # interesting = [c for c in cliques if any([x.startswith("t") for x in c])]
     t3_cliques = set()
     for key, value in graph.items():
         if not key.startswith("t"):
