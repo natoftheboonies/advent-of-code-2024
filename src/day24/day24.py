@@ -30,22 +30,15 @@ def main():
         known = map(lambda x: x.split(": "), known.splitlines())
         known = {k: int(v) for k, v in known}
         computed = map(lambda x: x.split(" -> "), computed.splitlines())
-        all_z = set()
         rules = dict()
         for left, right in computed:
             left = tuple(left.split(" "))
-            if right == "z01":
-                logger.debug("right: %s", right)
             rules[right] = left
-            if right.startswith("z"):
-                all_z.add(right)
 
-    # logger.debug(rules)
+    part2 = rules.copy()
 
     while rules:
         for result, rule in rules.items():
-            # if result == "z01":
-            #     logger.debug("rule: %s", rule)
             now_known = set()
             left, op, right = rule
             if left in known and right in known:
@@ -58,8 +51,6 @@ def main():
                 now_known.add(result)
         for result in now_known:
             del rules[result]
-        # if all(z in known for z in all_z):
-        #     break
     known_result = ""
     for k in sorted(known, reverse=True):
         # print(f"{k}: {known[k]}")
@@ -68,10 +59,38 @@ def main():
 
     logger.debug("known_result: %s", known_result)
     # read known_result as binary
-    known_result = "".join(map(str, known_result))
-    logger.debug("known_result: %s", known_result)
     known_result = int(known_result, 2)
     logger.info("Part 1: %s", known_result)  # not 70368743653376
+
+    # Part 2
+    # credit to https://www.reddit.com/r/adventofcode/comments/1hl698z/comment/m3llouk/
+    # find rules yielding z* without XOR
+    output_rules = {k for k, v in part2.items() if v[1] != "XOR" and k.startswith("z")}
+    output_rules.remove("z45")  # last carry bit ok
+    logger.debug("output_rules: %s", output_rules)
+    # find XOR rules without x* or y* inputs
+    input_rules = {
+        k
+        for k, v in part2.items()
+        if not k.startswith("z")
+        and v[1] == "XOR"
+        and not any(x.startswith("x") or x.startswith("y") for x in v)
+    }
+    logger.debug("input_rules: %s", input_rules)
+    # find OR inputs not AND outputs
+    and_outputs = {
+        k
+        for k, v in part2.items()
+        if v[1] == "AND" and not ("x00" in v and "y00" in v)  # first bit
+    }
+    or_inputs = {v[0] for k, v in part2.items() if v[1] == "OR"} | {
+        v[2] for k, v in part2.items() if v[1] == "OR"
+    }
+    # symmetric difference
+    net_inputs = or_inputs ^ and_outputs
+    logger.debug("and ^ or: %s", net_inputs)
+    combined = input_rules | output_rules | net_inputs
+    logger.info("Part 2: %s", ",".join(sorted(combined)))
 
 
 if __name__ == "__main__":
